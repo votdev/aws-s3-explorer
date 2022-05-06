@@ -18,64 +18,9 @@ const base64URLEncode = string => btoa(String.fromCharCode.apply(null, new Uint8
 export async function login(forceLogin) {
   const searchParams = new URL(window.location).searchParams;
   store.initialized = true;
-  if (store.tokens && DateTime.fromSeconds(jwtManager.decode(store.tokens.access_token).exp) > DateTime.utc()) {
-    store.autoLoginIn = true;
-    DEBUG.log('Found login token skipping login');
-    await convertCredentialsToAWSCredentials();
-    store.showSettings = false;
-    return;
-  }
-  store.tokens = null;
+  store.autoLoginIn = true;
 
-  const code = searchParams.get('code');
-  if (code !== null) {
-    const newUrl = new URL(window.location);
-    newUrl.searchParams.delete('nonce');
-    newUrl.searchParams.delete('expires_in');
-    newUrl.searchParams.delete('access_token');
-    newUrl.searchParams.delete('id_token');
-    newUrl.searchParams.delete('state');
-    newUrl.searchParams.delete('code');
-    newUrl.searchParams.delete('iss');
-    window.history.replaceState({}, undefined, newUrl.toString());
-
-    const codeVerifier = localStorage.getItem('codeVerifier');
-    if (codeVerifier === null) {
-      throw new Error('Unexpected code');
-    }
-
-    const codeExchangeBody = Object.entries({
-      grant_type: 'authorization_code',
-      client_id: store.applicationClientId,
-      code,
-      code_verifier: codeVerifier,
-      redirect_uri: `${window.location.origin}${window.location.pathname}`
-    }).map(([k, v]) => `${k}=${v}`).join('&');
-
-    const res = await fetch(`${store.applicationLoginUrl}/oauth2/token`, {
-      method: 'POST',
-      headers: new Headers({ 'content-type': 'application/x-www-form-urlencoded' }),
-      body: codeExchangeBody
-    });
-    if (!res.ok) {
-      throw new Error(await res.json());
-    }
-    const tokens = await res.json();
-    store.tokens = tokens;
-    await convertCredentialsToAWSCredentials();
-    store.showSettings = false;
-    store.autoLoginIn = true;
-    return;
-  }
-
-  DEBUG.log('Validating login parameters');
-  if (!await setConfigurationFromCustomDomain()) {
-    if (!store.awsAccountId || !store.applicationLoginUrl || !store.applicationClientId || !store.identityPoolId) {
-      DEBUG.log('Missing required parameter for login', store.awsAccountId, store.applicationLoginUrl, store.applicationClientId, store.identityPoolId);
-      store.showSettings = true;
-      return;
-    }
-  }
+  await convertCredentialsToAWSCredentials();
 
   try {
     // eslint-disable-next-line no-new
@@ -89,18 +34,18 @@ export async function login(forceLogin) {
     return;
   }
   // otherwise redirect login
-  store.autoLoginIn = false;
-  const nonce = await generateNonce();
-  const codeVerifier = await generateNonce();
-  localStorage.setItem('codeVerifier', codeVerifier);
-  const codeChallenge = base64URLEncode(await sha256(codeVerifier));
-  // redirect to login
-  const redirectUri = `${window.location.origin}${window.location.pathname}`;
-  store.loggedOut = false;
-  window.location = `${store.applicationLoginUrl}/oauth2/authorize?response_type=code&client_id=${store.applicationClientId}&state=${nonce}&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${redirectUri}`;
-  const waiter = new Promise(resolve => setTimeout(resolve, 2000));
-  await convertCredentialsToAWSCredentials();
-  await waiter;
+  // store.autoLoginIn = false;
+  // const nonce = await generateNonce();
+  // const codeVerifier = await generateNonce();
+  // localStorage.setItem('codeVerifier', codeVerifier);
+  // const codeChallenge = base64URLEncode(await sha256(codeVerifier));
+  // // redirect to login
+  // const redirectUri = `${window.location.origin}${window.location.pathname}`;
+  // store.loggedOut = false;
+  // window.location = `${store.applicationLoginUrl}/oauth2/authorize?response_type=code&client_id=${store.applicationClientId}&state=${nonce}&code_challenge_method=S256&code_challenge=${codeChallenge}&redirect_uri=${redirectUri}`;
+  // const waiter = new Promise(resolve => setTimeout(resolve, 2000));
+  // await convertCredentialsToAWSCredentials();
+  // await waiter;
 }
 
 const awsAccountId = computed(() => store.awsAccountId);
@@ -208,41 +153,8 @@ export async function setConfiguration(newAwsAccountId) {
 }
 
 function convertCredentialsToAWSCredentials() {
-  if (!store.identityPoolId) {
-    return;
-  }
-
-  if (!store.tokens) {
-    return;
-  }
-
-  try {
-    const cognitoUserPoolId = jwtManager.decode(store.tokens.id_token).iss.split('/').slice(-1)[0];
-    AWS.config.region = store.region;
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: store.identityPoolId,
-      Logins: { [`cognito-idp.${AWS.config.region}.amazonaws.com/${cognitoUserPoolId}`]: store.tokens.id_token }
-    });
-
-    DEBUG.log('Checking credentials');
-    AWS.config.credentials.get(async credentialsError => {
-      if (credentialsError) {
-        DEBUG.log('Failed to get credentials, following requests will not work due to the error:', credentialsError);
-        return;
-      }
-
-      try {
-        const stsResult = await new AWS.STS({ region: store.region }).getCallerIdentity().promise();
-        DEBUG.log('AWS Credentials Set', stsResult);
-        store.userRoleId = stsResult.Arn.split('/')[1];
-        store.autoLoginIn = true;
-      } catch (error) {
-        DEBUG.log('Failed to get credentials, following requests will not work due to the error:', error);
-        store.awsAccountId = null;
-        store.applicationClientId = null;
-      }
-    });
-  } catch (error) {
-    DEBUG.log('Failed to set credentials, following requests will not work due to the error:', error);
-  }
+  AWS.config.region = store.region;
+  AWS.config.credentials = new AWS.Credentials({accessKeyId: store.accessKeyId, secretAccessKey: store.secretAccessKey});
+  store.applicationLoginUrl = store.endpoint;
+  store.autoLoginIn = true;
 }

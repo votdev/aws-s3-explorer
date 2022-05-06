@@ -9,7 +9,7 @@
           <!-- Bucket selection and breadcrumbs -->
           <div style="display: flex; direction: row; align-items: center">
             <div class="title d-flex" style="align-items: center">
-              <h4>AWS S3 Explorer</h4>
+              <h4>S3GW Explorer</h4>
             </div>
             <!-- Bucket breadcrumbs -->
             <div class="" v-if="store.tokens && store.currentBucket" style="margin-right: 0.5rem;">
@@ -150,7 +150,6 @@
       <UploadModal v-if="store.showUploads" :filesToUpload="state.filesToUpload" @uploadsCompleted="uploadsCompleted" />
     </div>
 
-    <PoweredBy />
   </DropzoneWrapper>
 </template>
 
@@ -200,7 +199,7 @@ const logout = () => {
     return;
   }
 
-  store.showSettings = true;
+  store.showSettings = false;
 };
 
 const selectBucket = () => {
@@ -209,7 +208,7 @@ const selectBucket = () => {
 
 onMounted(async () => {
   if (store.loggedOut) {
-    store.showSettings = true;
+    store.showSettings = false;
     store.globalLoader = false;
     return;
   }
@@ -224,7 +223,7 @@ onMounted(async () => {
   store.globalLoader = false;
 
   if (!store.tokens) {
-    store.showSettings = true;
+    store.showSettings = false;
     store.objects = [];
     return;
   }

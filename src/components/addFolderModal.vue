@@ -61,13 +61,14 @@ const addFolder = async () => {
     return;
   }
 
-  const s3client = new AWS.S3(AWS.config);
+  const s3client = new AWS.S3({endpoint: store.endpoint, s3ForcePathStyle:true});
   const params = { Bucket: store.currentBucket.trim().toLowerCase(), Key: `${folder}${store.delimiter}` };
 
   // Test if an object with this key already exists
   try {
-    await s3client.headObject(params).promise();
-    DEBUG.log('Directory already exists, skipping creation');
+    //await s3client.headObject(params).promise();
+    await s3client.putObject(params).promise();
+    //DEBUG.log('Directory already exists, skipping creation');
   } catch (err1) {
     if (!err1) {
       DEBUG.log(`Error: directory or object already exists at: ${folder}`);

@@ -9,73 +9,36 @@
             </div>
             <div class="modal-body">
               <div class="col-md-18">
-                <h2>Welcome to the AWS S3 Explorer</h2>
+                <h2>Welcome to the S3GW Explorer</h2>
                 <div class="" style="width: 100%;">
                   <div>
                     To log in specify the following configuration:
                   </div>
                   <br>
                   <div style="display: flex; align-items: center">
-                    <span style="flex-grow: 1; flex-shrink: 0; margin-right: 0.5rem">AWS AccountId:&nbsp;</span><br>
-                    <input name="AWS AccountId" v-model.trim="store.awsAccountId"
-                      type="text" class="form-control" placeholder="742482629247" required="true" style="flex-grow: 1; margin-right: 0.5rem">
-                    <button style="flex-grow: 1; margin-right: 0.5rem" type="submit" class="btn btn-primary" :disabled="!store.awsAccountId"><i class="fas fa-sign-in-alt" /> Login</button>
-                  </div>
-
-                  <hr>
-                  
-                  <div>
-                    <h4>One time AWS Cloud Formation setup</h4>
-                    The S3 Explorer provides a quick setup step using a CFN template. Follow the steps to configure your account, and only need to be run once per AWS account.
-                    <ol>
-                      <br>
+                    <ul class="flex-outer">
                       <li>
-                        <div style="display: flex; align-items: center; justify-content: space-between">
-                          <span>Launch the CFN template:<br><small>(you'll be able to review on the next screen)</small><br></span>
-                          <a :href="launchStackUrl || '#'" :target="launchStackUrl ? '_blank' : '_self'" :class="{ 'disabled': !launchStackUrl }"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a>
-                        </div>
+                        <span style="flex-grow: 1; flex-shrink: 0; margin-right: 0.5rem">endpoint:&nbsp;</span><br>
+                        <input name="endpoint" v-model.trim="store.endpoint"
+                          type="text" class="form-control" required="true" style="flex-grow: 1; margin-right: 0.5rem">
                       </li>
-                      <br>
                       <li>
-                        Wait for the app to be completely deployed and then enter your AWS Account ID:
-                        <div>
-                          <input name="AWS AccountId" v-model.trim="store.awsAccountId" type="text" class="form-control" placeholder="742482629247" required="true"
-                            style="flex-grow: 1; margin-right: 0.5rem; width: 200px;" maxlength="20">
-                        </div>
+                        <span style="flex-grow: 1; flex-shrink: 0; margin-right: 0.5rem">accessKeyId:&nbsp;</span><br>
+                        <input name="accessKeyId" v-model.trim="store.accessKeyId"
+                          type="text" class="form-control" required="true" style="flex-grow: 1; margin-right: 0.5rem">
                       </li>
-                    </ol>
-                    <hr>
-                    <h4>[Optional] Connecting an SSO provider to Cognito:</h4>
-                    <ol>
                       <li>
-                        Follow your provider's guide to create a new client.<br>Set the <strong>Redirect URI</strong> property set it to be:<br>
-                        <div class="input-group">
-                          <input name="AWS AccountId" :value="`https://${store.awsAccountId || ''}-s3explorer.auth.${store.region}.amazoncognito.com/oauth2/idpresponse`"
-                            type="text" class="form-control" placeholder="742482629247" required="true" style="flex-grow: 1;" :disabled="true">
-                          <span class="input-group-btn">
-                            <button style="flex-grow: 1;" class="btn btn-primary" type="button" :disabled="!store.awsAccountId"
-                              @click="copyCognitoPoolCallbackUrl">
-                                <span v-if="!state.copyButtonSuccess"><i class="fas fa-copy" /> Copy</span>
-                                <span v-else><i class="fas fa-check" /> Copy</span>
-                            </button>
-                          </span>
-
-                        </div>
+                        <span style="flex-grow: 1; flex-shrink: 0; margin-right: 0.5rem">secretAccessKey:&nbsp;</span><br>
+                        <input name="secretAccessKey" v-model.trim="store.secretAccessKey"
+                          type="text" class="form-control" required="true" style="flex-grow: 1; margin-right: 0.5rem">
                       </li>
-                      <br>
                       <li>
-                        Navigate to the newly created Cognito Pool and configure:
-                        <ul>
-                          <li><a :href="`${generatedCognitoPoolUrl}/sign-in/identity-providers/add`" target="_blank">
-                            Sign-in experience > Federated identity provider sign-in</a><br>Select your SSO identity provider and fill in the credentials.
-                          </li>
-                          <li><a :href="`${generatedCognitoPoolUrl}/app-integration/clients/${store.applicationClientId}/edit/hosted-ui-settings`" target="_blank">
-                            App integration > Identity providers</a><br>Select the new identity provider, that you just linked
-                              (then click <strong>Save changes</strong>)
-                          </li>
-                        </ul>
+                        <span style="flex-grow: 1; flex-shrink: 0; margin-right: 0.5rem">bucketName:&nbsp;</span><br>
+                        <input name="bucketName" v-model.trim="store.bucketName"
+                          type="text" class="form-control" required="true" style="flex-grow: 1; margin-right: 0.5rem">
                       </li>
-                    </ol>
+                    </ul>
+                    <button style="flex-grow: 1; margin-right: 0.5rem" type="submit" class="btn btn-primary" :disabled="!store.accessKeyId"><i class="fas fa-sign-in-alt" /> Login</button>
                   </div>
                 </div>
               </div>
@@ -104,7 +67,7 @@ const launchStackUrl = computed(() => {
 });
 
 const cognitoLogin = async () => {
-  await setConfiguration(store.awsAccountId);
+  //await setConfiguration(store.awsAccountId);
   await login(true);
 };
 

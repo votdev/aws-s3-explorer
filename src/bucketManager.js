@@ -41,8 +41,13 @@ export async function fetchBucketObjectsExplicit(directory, findAllMatching = fa
   if (!store.currentBucket) {
     return [];
   }
+  
+  AWS.config.region = store.region;
+  AWS.config.credentials = new AWS.Credentials({accessKeyId: store.accessKeyId, secretAccessKey: store.secretAccessKey});
+  store.applicationLoginUrl = store.endpoint;
+  store.autoLoginIn = true;
 
-  const s3client = new AWS.S3({ maxRetries: 0, region: store.region });
+  const s3client = new AWS.S3({ endpoint: store.endpoint, maxRetries: 0, s3ForcePathStyle:true, region: store.region });
   const params = {
     Bucket: store.currentBucket.trim().toLowerCase(),
     Delimiter: findAllMatching ? undefined : store.delimiter,
@@ -68,12 +73,13 @@ export async function fetchBucketObjectsExplicit(directory, findAllMatching = fa
 }
 
 export async function validateConfiguration(bucket) {
-  const s3client = new AWS.S3({ maxRetries: 0 });
+
+  const s3client = new AWS.S3({endpoint: store.endpoint, maxRetries: 0, s3ForcePathStyle:true});
   try {
     await s3client.getBucketCors({ Bucket: bucket }).promise();
   } catch (err) {
     try {
-      await fetchBucketObjectsExplicit();
+      store.objects = await fetchBucketObjectsExplicit();
       return;
     } catch (error) {
       /** Ignore this fallback failure */
@@ -89,7 +95,7 @@ export async function validateConfiguration(bucket) {
 }
 
 export async function downloadObjects(bucket, keys) {
-  const s3client = new AWS.S3({ maxRetries: 0, region: getBuckets().find(b => b.bucket === bucket).region || store.region });
+  const s3client = new AWS.S3({endpoint: store.endpoint, s3ForcePathStyle:true, maxRetries: 0, region: getBuckets().find(b => b.bucket === bucket).region || store.region });
 
   const blobs = [];
   const downloadObject = async key => {

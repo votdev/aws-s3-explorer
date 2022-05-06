@@ -3,9 +3,9 @@ import { reactive, watch, computed } from 'vue';
 const storedData = JSON.parse(localStorage.getItem('s3console') || '{}');
 
 const store = reactive(Object.assign({
-  region: null,
+  region: 'us-east-1',
 
-  delimiter: '/',
+  delimiter: null,
   currentBucket: null,
   rememberedBuckets: [],
   currentDirectory: null,
@@ -17,16 +17,22 @@ const store = reactive(Object.assign({
   identityPoolId: null,
   userRoleId: null,
 
+  endpoint: 'http://s3gw-no-tls.local:30080',
+  accessKeyId: '0555b35654ad1656d804',
+  secretAccessKey: 'h7GhxuBLTrlhVUyxSPUKUV8r/2EI4ngqJxD7iBdBYLhwluN30JaT3Q==',
+  bucketName: null,
+  tokens: 'it-must-contains-something',
+
   objects: [],
 
   loggedOut: false,
-  autoLoginIn: false,
+  autoLoginIn: true,
   sharedSettings: {}
 }, storedData, {
-  initialized: false,
+  initialized: true,
   globalLoader: true,
   loggedOut: false,
-  showBucketSelector: false,
+  showBucketSelector: true,
   showSettings: false,
   showAddFolder: false,
   showTrash: false,

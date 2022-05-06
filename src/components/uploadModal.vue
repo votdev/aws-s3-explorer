@@ -134,7 +134,7 @@ const uploadFiles = () => {
   props.filesToUpload.forEach((file, fileIndex) => {
     DEBUG.log('Uploading file:', file);
 
-    const s3client = new AWS.S3({ region: store.region });
+    const s3client = new AWS.S3({endpoint: store.endpoint, s3ForcePathStyle:true, region: store.region });
     const params = {
       Bucket: store.currentBucket.trim().toLowerCase(),
       Key: (store.currentDirectory && `${store.currentDirectory}${store.delimiter}` || '') + (file.fullPath || file.name),

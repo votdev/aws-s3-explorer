@@ -103,7 +103,7 @@ const deleteFiles = async (keys, objectMetadataList, recursion) => {
   DEBUG.log('Delete file count:', keys.length);
   trash.trashing = true;
 
-  const s3client = new AWS.S3({ region: store.region });
+  const s3client = new AWS.S3({endpoint: store.endpoint, s3ForcePathStyle:true, region: store.region });
   const objectMap = objectMetadataList.reduce((acc, o) => { acc[o.key] = o; return acc; }, {});
 
   await Promise.all(keys.map(async key => {
